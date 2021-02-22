@@ -25,6 +25,7 @@
 ;	Internal oscillator, wdt is off, Pin4 is MCLR 
 	__CONFIG _CONFIG2, _WRT_OFF & _PLLEN_OFF & _LVP_OFF
 ;	Global Variables
+FreqVal		EQU	b'01110000'	; 8MHz
 InitPort	EQU	b'00000000'	; PORTA all Voltage are low
 TRISconf	EQU	b'11011111'	; All inputs except RA5 
 AllDigit	EQU	b'00000000'	; Variable to conf ANSELA
@@ -46,10 +47,35 @@ loop1
 ;				configure the system
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 sysInit 
+	
+	CALL oscConfig
 	CALL portConfig
 	
 	RETURN
 
+;;;; oscConfig ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Author:	DTsebrii
+;Date:		02/21/2021
+;Description:	Seting the oscillator frequency level and
+;				waiting until OSC is stable 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+oscConfig
+	BANKSEL	OSCCON
+	MOVLW	FreqVal
+	MOVWF	OSCCON
+;	Wait until OSC is stable
+oscStable
+	BANKSEL	OSCSTAT
+	BTFSS	OSCSTAT, HFIOFS	; Check either HFIOFS is 1
+	GOTO	oscStable
+	
+	RETURN
+
+;;;; portConfig ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Author:	DTsebrii
+;Date:		02/21/2021
+;Description:	Setting up the GPIO ports 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 portConfig
 	BANKSEL ANSELA
 	MOVLW	AllDigit
